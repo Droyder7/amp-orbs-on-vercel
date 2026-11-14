@@ -17,7 +17,7 @@ await scaleProvider(0)
 export async function scaleProvider(instances: 0 | 1): Promise<void>
 ```
 
-Two private schedule handlers and a bearer-authenticated manual POST endpoint share one helper. The public endpoint uses a separate `AMP_PROVIDER_API_SECRET`, requests only one instance, and leaves schedule state unchanged. The helper hides project and team lookup from environment variables, production-only enforcement, API authentication, the fixed daemon and region, timeout, and confirmation parsing. It accepts only an absolute zero or one count, so retries converge on the same desired state. It resolves when Vercel confirms the override was saved, and throws a sanitized error otherwise. It does not wait for daemon readiness.
+Two private schedule handlers and a public manual GET endpoint share one helper. The public endpoint requires no client credentials, requests only one instance, and leaves schedule state unchanged. The helper hides project and team lookup from environment variables, production-only enforcement, API authentication, the fixed daemon and region, timeout, and confirmation parsing. It accepts only an absolute zero or one count, so retries converge on the same desired state. It resolves when Vercel confirms the override was saved, and throws a sanitized error otherwise. It does not wait for daemon readiness.
 
 ## Design decision and alternatives
 

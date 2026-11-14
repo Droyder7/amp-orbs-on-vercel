@@ -142,23 +142,15 @@ The helper uses an absolute, repeatable [instance override](https://vercel.com/d
 
 ### Manual start API
 
-Send `POST /api/manual-start-provider` with `Authorization: Bearer <secret>`. Set `AMP_PROVIDER_API_SECRET` as a sensitive Production environment variable and redeploy to enable it. Use a separate random secret of at least 32 bytes, rather than the Vercel control token. The secret authorizes only this start operation. Without it configured, the endpoint returns `503`; missing or incorrect credentials return `401`.
+Open `/api/manual-start-provider` in a browser or send a GET request. This endpoint is public and requires no token. Anyone with the URL can request one running provider instance.
 
 ```sh
-curl --fail-with-body -X POST \
-  https://amp-orbs-on-vercel-provider.vercel.app/api/manual-start-provider \
-  -H "Authorization: Bearer $AMP_PROVIDER_API_SECRET"
+curl --fail-with-body https://amp-orbs-on-vercel-provider.vercel.app/api/manual-start-provider
 ```
 
-Replace the domain with your project's production domain when deploying another copy. Keep the secret out of URLs and source control. For this checkout, the generated secret is saved in the gitignored `.env.manual.local` file with owner-only permissions. Load it into your shell before the command above:
+Replace the domain with your project's production domain when deploying another copy. The Vercel control token stays on the server.
 
-```sh
-set -a
-. ./.env.manual.local
-set +a
-```
-
-A successful request returns HTTP `202` and `{ "ok": true, "daemon": "amp-orb-provider", "instances": 1, "status": "requested" }`. It confirms the instance override was saved, not that Amp is connected yet. Repeating the request keeps the count at one. Scaling failures return `502`. Preview deployments cannot scale production. If Deployment Protection covers your production domain, callers also need Vercel's protection credentials.
+A successful request returns HTTP `202` and `{ "ok": true, "daemon": "amp-orb-provider", "instances": 1, "status": "requested" }`. It confirms the instance override was saved, not that Amp is connected yet. Responses use `Cache-Control: no-store`. Repeating the request keeps the count at one. Scaling failures return `502`. Preview deployments cannot scale production. If Deployment Protection covers your production domain, Vercel can still require its own protection credentials.
 
 This endpoint can start the provider even if the recurring start schedule is disabled. It does not enable or disable schedules or extend the next 5 AM stop. If you disabled the stop schedule too, you must stop the daemon manually. Use the dashboard's stop schedule for manual shutdown.
 
