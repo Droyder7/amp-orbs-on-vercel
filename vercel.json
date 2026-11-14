@@ -5,13 +5,35 @@
     "amp-orb-provider": {
       "root": "provider/",
       "entrypoint": "Dockerfile",
-      "instances": { "iad1": 1 },
+      "instances": { "iad1": 0 },
       "resources": { "requests": { "memory": "1Gi" } }
     },
     "orb-image": {
       "root": "orb-image/",
       "entrypoint": "Dockerfile",
       "instances": { "iad1": 0 }
+    }
+  },
+  "functions": {
+    "api/start-provider.ts": {
+      "maxDuration": 30,
+      "experimentalTriggers": [{ "type": "schedule/v1beta" }]
+    },
+    "api/stop-provider.ts": {
+      "maxDuration": 30,
+      "experimentalTriggers": [{ "type": "schedule/v1beta" }]
+    }
+  },
+  "schedules": {
+    "amp-provider-start": {
+      "schedule": "0 17 * * *",
+      "timezone": "Asia/Kolkata",
+      "function": "api/start-provider"
+    },
+    "amp-provider-stop": {
+      "schedule": "0 5 * * *",
+      "timezone": "Asia/Kolkata",
+      "function": "api/stop-provider"
     }
   }
 }
