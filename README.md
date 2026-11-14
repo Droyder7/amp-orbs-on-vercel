@@ -140,6 +140,28 @@ Open **Project > Schedules**, select `amp-provider-start` or `amp-provider-stop`
 
 The helper uses an absolute, repeatable [instance override](https://vercel.com/docs/rest-api/daemons/override-a-project-daemon-s-instance-counts), a 15-second request timeout, and requires `{ "ok": true }`. Each function has a 30-second duration limit. Logs include the schedule name and execution ID, and failures propagate into execution history without logging credentials or API response bodies. Private function targets have no automatic retries. If a run fails, inspect its history and rerun it, or scale the daemon from the dashboard. Rotate an expired token in Production and redeploy.
 
+### Manual start API
+
+Send `POST /api/manual-start-provider` with `Authorization: Bearer <secret>`. Set `AMP_PROVIDER_API_SECRET` as a sensitive Production environment variable and redeploy to enable it. Use a separate random secret of at least 32 bytes, rather than the Vercel control token. The secret authorizes only this start operation. Without it configured, the endpoint returns `503`; missing or incorrect credentials return `401`.
+
+```sh
+curl --fail-with-body -X POST \
+  https://amp-orbs-on-vercel-provider.vercel.app/api/manual-start-provider \
+  -H "Authorization: Bearer $AMP_PROVIDER_API_SECRET"
+```
+
+Replace the domain with your project's production domain when deploying another copy. Keep the secret out of URLs and source control. For this checkout, the generated secret is saved in the gitignored `.env.manual.local` file with owner-only permissions. Load it into your shell before the command above:
+
+```sh
+set -a
+. ./.env.manual.local
+set +a
+```
+
+A successful request returns HTTP `202` and `{ "ok": true, "daemon": "amp-orb-provider", "instances": 1, "status": "requested" }`. It confirms the instance override was saved, not that Amp is connected yet. Repeating the request keeps the count at one. Scaling failures return `502`. Preview deployments cannot scale production. If Deployment Protection covers your production domain, callers also need Vercel's protection credentials.
+
+This endpoint can start the provider even if the recurring start schedule is disabled. It does not enable or disable schedules or extend the next 5 AM stop. If you disabled the stop schedule too, you must stop the daemon manually. Use the dashboard's stop schedule for manual shutdown.
+
 ### V1 limits
 
 Stopping the provider can interrupt an in-flight dispatch operation. V1 does not detect active work, drain jobs, stop running sandboxes, or delete snapshots. Finish and pause Amp tasks before 5 AM and check running sandboxes separately. While the provider is off, Amp cannot dispatch spawn, pause, or delete requests through it.
