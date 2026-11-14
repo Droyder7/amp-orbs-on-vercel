@@ -75,8 +75,8 @@ if (ORB_OPERATION === 'spawn') {
 	const sandbox = await Sandbox.getOrCreate({
 		name: ORB_ID,
 		...(image ? { image } : {}),
-		resources: { vcpus: 4 },
-		timeout: 60 * 60 * 1000,
+		resources: { vcpus: 2 },
+		timeout: 40 * 60 * 1000,
 		persistent: true,
 		snapshotExpiration: SNAPSHOT_EXPIRATION_MS,
 		keepLastSnapshots: { count: 1, expiration: SNAPSHOT_EXPIRATION_MS, deleteEvicted: true },
